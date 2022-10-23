@@ -1,0 +1,73 @@
+pipeline 
+{
+    agent {label "node1"}
+    
+    tools
+    {
+        maven "myMaven@node1"
+        jdk "myJava@node1"
+    }
+
+    stages 
+    {
+        stage('Checkout')
+        {
+            steps
+            {
+                // Get some code from a GitHub repository
+                git 'https://github.com/sheikmohamedgani/DevOpsClassCodes.git'
+            }
+        }
+        stage('Compile') 
+        {
+            steps 
+            {
+                // Run Maven on a Node 1.
+                sh "mvn compile"
+            }
+        }
+        stage('Code Review') 
+        {
+            steps 
+            {
+                // Run Maven on a Node 1.
+                sh "mvn pmd:pmd"
+            }
+        }
+        stage('Unit Test') 
+        {
+            steps
+            {
+                // Run Maven on a Node 1.
+                sh "mvn test"
+            }
+            post
+            {
+                always
+                {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Package')
+        {
+            steps
+            {
+                // Run Maven on a Node 1.
+                sh "mvn package"
+            }
+        }
+        stage('Deploy')
+        {
+            steps
+            {
+                script
+                {
+                   // Copy the WAR file to Tomcat Server.
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'TomcatServer', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: 'target/', sourceFiles: 'target/mvn-hello-world.war')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                }
+                
+            }
+        }
+    }
+}
