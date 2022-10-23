@@ -1,33 +1,29 @@
-pipeline {
-    agent node1
-
-    tools {
-        // Install the Maven version configured as "M3" and add it to the path.
+pipeline 
+{
+    agent {label "node1"}
+    
+    tools
+    {
         maven "myMaven@node1"
-        JDK "myJAVA@node1"
+        jdk "myJava@node1"
     }
 
-    stages {
+    stages 
+    {
+        stage('Checkout')
+        {
+            steps
+            {
+                // Get some code from a GitHub repository
+                git 'https://github.com/sheikmohamedgani/DevOpsClassCodes.git'
+            }
+        }
         stage('Compile') 
         {
             steps 
             {
-                // Get some code from a GitHub repository
-                git 'https://github.com/sheikmohamedgani/DevOpsClassCodes.git'
-
                 // Run Maven on a Node 1.
                 sh "mvn compile"
-            }
-
-            post
-            {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
-                success 
-                {
-                    junit '**/target/surefire-reports/TEST-*.xml'
-                    archiveArtifacts 'target/*.jar'
-                }
             }
         }
         stage('Code Review') 
@@ -37,58 +33,29 @@ pipeline {
                 // Run Maven on a Node 1.
                 sh "mvn pmd:pmd"
             }
-
-            post
-            {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
-                success 
-                {
-                    junit '**/target/surefire-reports/TEST-*.xml'
-                    archiveArtifacts 'target/*.jar'
-                }
-            }
         }
         stage('Unit Test') 
         {
-            steps 
+            steps
             {
                 // Run Maven on a Node 1.
                 sh "mvn test"
             }
-
             post
             {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
-                success 
+                always
                 {
-                    junit '**/target/surefire-reports/TEST-*.xml'
-                    archiveArtifacts 'target/*.jar'
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
-        stage('Package') 
+        stage('Package')
         {
-            steps 
+            steps
             {
                 // Run Maven on a Node 1.
                 sh "mvn package"
             }
-
-            post
-            {
-                // If Maven was able to run the tests, even if some of the test
-                // failed, record the test results and archive the jar file.
-                success 
-                {
-                    junit '**/target/surefire-reports/TEST-*.xml'
-                    archiveArtifacts 'target/*.jar'
-                }
-            }
         }
-        
-        
-        
     }
 }
