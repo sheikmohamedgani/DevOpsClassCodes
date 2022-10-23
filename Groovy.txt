@@ -1,3 +1,5 @@
+Pipeline Script for the Assignment
+
 pipeline 
 {
     agent {label "node1"}
